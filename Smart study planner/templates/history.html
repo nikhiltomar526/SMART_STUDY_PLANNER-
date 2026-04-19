@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>History | Smart Study Planner</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  font-family:'Segoe UI',Arial,sans-serif;
+  background:linear-gradient(135deg,#0d1b4b 0%,#1a237e 50%,#1565c0 100%);
+  min-height:100vh;padding:20px 16px 50px;
+}
+header{text-align:center;padding:28px 0 10px;color:#fff;}
+header h1{font-size:2rem;}
+header p{font-size:.9rem;opacity:.7;margin-top:5px;}
+nav{text-align:center;margin:14px 0 22px;}
+nav a{color:rgba(255,255,255,.8);text-decoration:none;margin:0 12px;font-size:.9rem;border-bottom:2px solid transparent;padding-bottom:3px;transition:all .2s;}
+nav a:hover{color:#fff;border-color:#90caf9;}
+
+.flash-wrap{max-width:920px;margin:0 auto 14px;}
+.flash{padding:11px 16px;border-radius:8px;margin-bottom:7px;font-size:.9rem;font-weight:500;}
+.flash.info{background:#e3f2fd;color:#1565c0;border-left:4px solid #1e88e5;}
+
+.card{background:#fff;border-radius:16px;padding:26px;box-shadow:0 8px 30px rgba(0,0,0,.22);max-width:920px;margin:0 auto;}
+.card h3{font-size:1.1rem;color:#1a237e;margin-bottom:18px;}
+
+.stats-row{display:flex;gap:14px;margin-bottom:22px;flex-wrap:wrap;}
+.stat-box{background:#e8eaf6;border-radius:10px;padding:14px 18px;flex:1;min-width:110px;text-align:center;}
+.stat-box .num{font-size:1.8rem;font-weight:700;color:#1a237e;}
+.stat-box .lbl{font-size:.75rem;color:#666;margin-top:2px;}
+
+table{width:100%;border-collapse:collapse;font-size:.88rem;}
+thead tr{background:linear-gradient(135deg,#1a237e,#1565c0);color:#fff;}
+th,td{padding:11px 14px;text-align:left;}
+tbody tr:nth-child(even){background:#f3f4ff;}
+tbody tr:hover{background:#e8eaf6;}
+
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:.74rem;font-weight:600;background:#e8eaf6;color:#1a237e;margin:2px 2px;}
+
+.btn-danger{background:#ffebee;color:#c62828;border:none;padding:6px 12px;border-radius:6px;font-size:.8rem;cursor:pointer;font-weight:600;transition:background .2s;}
+.btn-danger:hover{background:#ffcdd2;}
+
+.empty{text-align:center;padding:40px;color:#aaa;}
+.empty div{font-size:3rem;}
+.empty p{margin-top:10px;font-size:.95rem;}
+
+@media(max-width:600px){th,td{padding:8px 9px;font-size:.8rem;}}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📋 Study History</h1>
+  <p>All your generated study plans</p>
+</header>
+
+<nav>
+  <a href="/">🏠 Home</a>
+  <a href="/timetable">🧠 AI Timetable</a>
+  <a href="/history">📋 History</a>
+</nav>
+
+<div class="flash-wrap">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="flash {{ cat }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+</div>
+
+<div class="card">
+  <h3>📊 Overview</h3>
+
+  {% if history %}
+  <div class="stats-row">
+    <div class="stat-box">
+      <div class="num">{{ history|length }}</div>
+      <div class="lbl">Total Plans</div>
+    </div>
+    <div class="stat-box">
+      <div class="num">{{ history|map(attribute=3)|sum }}</div>
+      <div class="lbl">Total Hours Planned</div>
+    </div>
+    <div class="stat-box">
+      <div class="num">{{ history|map(attribute=1)|unique|list|length }}</div>
+      <div class="lbl">Unique Users</div>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>#</th><th>Name</th><th>Subjects</th><th>Hours</th><th>Date</th><th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in history %}
+      <tr>
+        <td>{{ row[0] }}</td>
+        <td><b>{{ row[1] }}</b></td>
+        <td>
+          {% for sub in row[2].split(',') %}
+          <span class="badge">{{ sub.strip() }}</span>
+          {% endfor %}
+        </td>
+        <td>⏱️ {{ row[3] }}h</td>
+        <td style="color:#888;font-size:.8rem;">{{ row[4] or '—' }}</td>
+        <td>
+          <form method="POST" action="/delete/{{ row[0] }}"
+                onsubmit="return confirm('Delete this entry?')">
+            <button class="btn-danger">🗑️ Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% else %}
+  <div class="empty">
+    <div>📭</div>
+    <p>No plans yet. <a href="/" style="color:#1a237e;font-weight:600;">Generate your first plan!</a></p>
+  </div>
+  {% endif %}
+</div>
+
+<p style="text-align:center;color:rgba(255,255,255,.3);font-size:.73rem;margin-top:28px;">
+  Smart Study Planner &nbsp;•&nbsp; Stay consistent, stay focused 🚀
+</p>
+
+<script>
+setTimeout(()=>{
+  document.querySelectorAll('.flash').forEach(el=>{
+    el.style.transition='opacity .5s';
+    el.style.opacity='0';
+    setTimeout(()=>el.remove(),500);
+  });
+},4000);
+</script>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background: #0f172a;
+    color: #fff;
+}
+
+/* Navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 30px;
+    background: #020617;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+.navbar h2 {
+    margin: 0;
+}
+
+.navbar a {
+    color: #38bdf8;
+    text-decoration: none;
+}
+
+/* Container */
+.container {
+    padding: 30px;
+}
+
+/* Cards */
+.card {
+    background: #020617;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+    margin-bottom: 20px;
+}
+
+/* Input */
+input {
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    width: 70%;
+}
+
+/* Button */
+button {
+    padding: 12px 20px;
+    border-radius: 10px;
+    border: none;
+    background: #38bdf8;
+    color: black;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Task List */
+.task {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    border-bottom: 1px solid #1e293b;
+}
+
+.task a {
+    color: red;
+    text-decoration: none;
+}
+
+/* Stats */
+.stats {
+    display: flex;
+    gap: 20px;
+}
+
+.stat-box {
+    flex: 1;
+    text-align: center;
+    padding: 20px;
+    border-radius: 15px;
+    background: #020617;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="navbar">
+    <h2>📘 Smart Study Planner</h2>
+    <div>
+        <span>User: {{ current_user.id }}</span> |
+        <a href="/logout">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+
+```
+<!-- Stats -->
+<div class="stats">
+    <div class="stat-box">
+        <h3>{{ tasks|length }}</h3>
+        <p>Total Tasks</p>
+    </div>
+    <div class="stat-box">
+        <h3>🔥 5</h3>
+        <p>Study Streak</p>
+    </div>
+    <div class="stat-box">
+        <h3>⏱ 2h</h3>
+        <p>Today's Study</p>
+    </div>
+</div>
+
+<!-- Add Task -->
+<div class="card">
+    <h3>Add New Task</h3>
+    <form method="POST" action="/add">
+        <input name="task" placeholder="Enter your task..." required>
+        <button type="submit">Add</button>
+    </form>
+</div>
+
+<!-- Task List -->
+<div class="card">
+    <h3>Your Tasks</h3>
+
+    {% for task in tasks %}
+    <div class="task">
+        <span>{{ task[1] }}</span>
+        <a href="/delete/{{ task[0] }}">❌</a>
+    </div>
+    {% endfor %}
+
+    {% if not tasks %}
+    <p>No tasks yet. Start studying 🚀</p>
+    {% endif %}
+</div>
+```
+
+</div>
+
+</body>
+</html>

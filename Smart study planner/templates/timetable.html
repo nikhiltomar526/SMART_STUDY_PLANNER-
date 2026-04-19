@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Timetable | Smart Study Planner</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  font-family:'Segoe UI',Arial,sans-serif;
+  background:linear-gradient(135deg,#0d1b4b 0%,#1a237e 50%,#1565c0 100%);
+  min-height:100vh; padding:20px 16px 60px;
+}
+
+/* ── Header ── */
+header{text-align:center;padding:28px 0 10px;color:#fff;}
+header h1{font-size:2rem;letter-spacing:1px;}
+header p{font-size:.9rem;opacity:.72;margin-top:5px;}
+
+/* ── Nav ── */
+nav{text-align:center;margin:14px 0 22px;}
+nav a{
+  color:rgba(255,255,255,.8);text-decoration:none;
+  margin:0 12px;font-size:.9rem;
+  border-bottom:2px solid transparent;padding-bottom:3px;transition:all .2s;
+}
+nav a:hover{color:#fff;border-color:#90caf9;}
+nav a.active{color:#fff;border-color:#90caf9;}
+
+/* ── Flash ── */
+.flash-wrap{max-width:1200px;margin:0 auto 14px;}
+.flash{padding:11px 16px;border-radius:8px;margin-bottom:7px;font-size:.9rem;font-weight:500;}
+.flash.success{background:#e8f5e9;color:#2e7d32;border-left:4px solid #43a047;}
+.flash.error  {background:#ffebee;color:#c62828;border-left:4px solid #e53935;}
+.flash.info   {background:#e3f2fd;color:#1565c0;border-left:4px solid #1e88e5;}
+
+/* ── Layout ── */
+.page-wrap{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:320px 1fr;gap:22px;align-items:start;}
+@media(max-width:900px){.page-wrap{grid-template-columns:1fr;}}
+
+/* ── Card ── */
+.card{background:#fff;border-radius:16px;padding:26px;box-shadow:0 8px 30px rgba(0,0,0,.22);}
+.card h3{font-size:1.05rem;color:#1a237e;margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+
+/* ── Form ── */
+label{
+  display:block;font-size:.74rem;color:#555;
+  margin:10px 0 4px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.5px;
+}
+input[type=text],input[type=number],input[type=date],select,textarea{
+  width:100%;padding:9px 12px;
+  border:1.5px solid #c5cae9;border-radius:8px;
+  font-size:.9rem;outline:none;background:#f8f9ff;
+  transition:border .2s;font-family:inherit;
+}
+input:focus,select:focus,textarea:focus{border-color:#3949ab;background:#fff;}
+textarea{resize:vertical;min-height:60px;font-size:.82rem;}
+
+.hint{font-size:.72rem;color:#aaa;margin-top:3px;}
+
+.btn-gen{
+  width:100%;padding:12px;border:none;border-radius:10px;
+  background:linear-gradient(135deg,#1a237e,#1565c0);
+  color:#fff;font-size:.95rem;font-weight:700;
+  cursor:pointer;margin-top:16px;transition:opacity .2s;
+  letter-spacing:.3px;
+}
+.btn-gen:hover{opacity:.88;}
+
+/* ── AI badge ── */
+.ai-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  background:linear-gradient(135deg,#6a1b9a,#1565c0);
+  color:#fff;padding:3px 10px;border-radius:20px;
+  font-size:.72rem;font-weight:700;letter-spacing:.5px;
+  margin-bottom:14px;
+}
+
+/* ── Countdown chips ── */
+.countdown-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;}
+.cd-chip{
+  background:#fff3e0;color:#e65100;
+  border:1.5px solid #ffcc80;
+  padding:5px 12px;border-radius:20px;font-size:.78rem;font-weight:600;
+}
+.cd-chip.urgent{background:#ffebee;color:#c62828;border-color:#ef9a9a;}
+.cd-chip.safe  {background:#e8f5e9;color:#2e7d32;border-color:#a5d6a7;}
+
+/* ── Summary cards ── */
+.summary-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;}
+.sum-box{
+  flex:1;min-width:100px;
+  border-radius:10px;padding:12px 14px;text-align:center;
+  color:#fff;font-weight:600;
+}
+.sum-box .num{font-size:1.6rem;font-weight:700;line-height:1;}
+.sum-box .lbl{font-size:.72rem;opacity:.85;margin-top:3px;}
+
+/* ── Timetable grid ── */
+.tt-scroll{overflow-x:auto;border-radius:12px;}
+.tt-table{
+  border-collapse:collapse;width:100%;
+  min-width:700px;font-size:.78rem;
+}
+.tt-table th{
+  background:#1a237e;color:#fff;
+  padding:10px 8px;text-align:center;
+  font-size:.8rem;white-space:nowrap;
+}
+.tt-table th.time-col{background:#0d1b4b;width:80px;}
+.tt-table td{
+  padding:7px 6px;text-align:center;
+  border:1px solid #e8eaf6;
+  font-size:.75rem;font-weight:500;
+  white-space:nowrap;
+}
+.tt-table tr:hover td{filter:brightness(.95);}
+
+.cell-study{color:#fff;border-radius:6px;}
+.cell-free {background:#f5f5f5;color:#999;}
+.cell-rest {background:#eceff1;color:#78909c;font-style:italic;}
+.cell-rev  {background:#fff3e0;color:#e65100;font-weight:700;}
+.time-cell {background:#f8f9ff;color:#555;font-weight:600;font-size:.72rem;}
+
+/* ── Legend ── */
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:.75rem;color:#555;}
+.leg-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
+
+/* ── Print btn ── */
+.print-btn{
+  background:#e8eaf6;color:#1a237e;border:none;
+  padding:9px 20px;border-radius:8px;font-size:.85rem;
+  font-weight:600;cursor:pointer;margin-top:14px;
+  transition:background .2s;
+}
+.print-btn:hover{background:#c5cae9;}
+
+@media print{
+  body{background:#fff;padding:0;}
+  header,nav,.flash-wrap,.card:first-child,.print-btn{display:none;}
+  .tt-scroll{overflow:visible;}
+  .tt-table{font-size:.65rem;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🧠 AI Smart Timetable Generator</h1>
+  <p>Exam-aware • Priority-based • Fully automated weekly schedule</p>
+</header>
+
+<nav>
+  <a href="/">🏠 Home</a>
+  <a href="/timetable" class="active">🧠 AI Timetable</a>
+  <a href="/history">📋 History</a>
+</nav>
+
+<div class="flash-wrap">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="flash {{ cat }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+</div>
+
+<div class="page-wrap">
+
+  <!-- ══ INPUT FORM ══ -->
+  <div class="card">
+    <div class="ai-badge">✨ AI Powered</div>
+    <h3>⚙️ Configure Your Timetable</h3>
+
+    <form method="POST">
+      <label>Your Name</label>
+      <input type="text" name="tt_name" placeholder="e.g. Rahul">
+
+      <label>Subjects <span style="color:#e53935">*</span></label>
+      <input type="text" name="tt_subjects" placeholder="Math, Physics, Chemistry, English" required>
+      <p class="hint">Comma separated</p>
+
+      <label>Daily Study Hours</label>
+      <select name="tt_hours">
+        <option value="4">4 hours/day</option>
+        <option value="5">5 hours/day</option>
+        <option value="6" selected>6 hours/day</option>
+        <option value="7">7 hours/day</option>
+        <option value="8">8 hours/day</option>
+        <option value="10">10 hours/day</option>
+        <option value="12">12 hours/day</option>
+      </select>
+
+      <label>Wake Up Time</label>
+      <select name="tt_wake">
+        <option value="5:00">5:00 AM</option>
+        <option value="6:00" selected>6:00 AM</option>
+        <option value="7:00">7:00 AM</option>
+        <option value="8:00">8:00 AM</option>
+        <option value="9:00">9:00 AM</option>
+      </select>
+
+      <label>Sleep Time</label>
+      <select name="tt_sleep">
+        <option value="21:00">9:00 PM</option>
+        <option value="22:00" selected>10:00 PM</option>
+        <option value="23:00">11:00 PM</option>
+        <option value="24:00">12:00 AM</option>
+      </select>
+
+      <label>Study Goal</label>
+      <select name="tt_goal">
+        <option value="exam">🎯 Exam Preparation</option>
+        <option value="revision">📝 Revision</option>
+        <option value="general" selected>📚 General Learning</option>
+        <option value="competitive">🏆 Competitive Exam</option>
+      </select>
+
+      <label>Break Day</label>
+      <select name="tt_break">
+        <option value="Sunday" selected>Sunday</option>
+        <option value="Saturday">Saturday</option>
+        <option value="None">No break day</option>
+      </select>
+
+      <label>Exam Dates <small style="text-transform:none;font-weight:400;color:#aaa">(optional)</small></label>
+      <textarea name="tt_exams"
+        placeholder="Math: 2026-05-10; Physics: 2026-05-15; Chemistry: 2026-05-20"></textarea>
+      <p class="hint">Format: Subject: YYYY-MM-DD; Subject: YYYY-MM-DD</p>
+
+      <button class="btn-gen" type="submit">🧠 Generate AI Timetable</button>
+    </form>
+  </div>
+
+  <!-- ══ RESULT ══ -->
+  <div>
+    {% if result %}
+
+    <!-- Exam Countdowns -->
+    {% if result.countdowns %}
+    <div class="card" style="margin-bottom:18px;">
+      <h3>⏳ Exam Countdown</h3>
+      <div class="countdown-row">
+        {% for sub, days in result.countdowns.items() %}
+        <div class="cd-chip {% if days <= 7 %}urgent{% elif days > 21 %}safe{% endif %}">
+          {{ sub }}: {% if days == 0 %}TODAY!{% elif days == 1 %}Tomorrow!{% else %}{{ days }} days{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Summary -->
+    <div class="card" style="margin-bottom:18px;">
+      <h3>📊 Weekly Summary</h3>
+      <div class="summary-row">
+        {% for sub, hrs in result.summary.items() %}
+        <div class="sum-box" style="background:{{ result.color_map[sub] }};">
+          <div class="num">{{ hrs }}</div>
+          <div class="lbl">{{ sub[:10] }}</div>
+        </div>
+        {% endfor %}
+        <div class="sum-box" style="background:#546e7a;">
+          <div class="num">{{ result.daily_hours * 6 }}</div>
+          <div class="lbl">Total hrs/week</div>
+        </div>
+      </div>
+
+      <!-- Legend -->
+      <div class="legend">
+        {% for sub in result.subjects %}
+        <div class="leg-item">
+          <div class="leg-dot" style="background:{{ result.color_map[sub] }};"></div>
+          <span>{{ sub }}</span>
+        </div>
+        {% endfor %}
+        <div class="leg-item">
+          <div class="leg-dot" style="background:#f57c00;"></div>
+          <span>Revision</span>
+        </div>
+        <div class="leg-item">
+          <div class="leg-dot" style="background:#90a4ae;"></div>
+          <span>Break/Free</span>
+        </div>
+        <div class="leg-item">
+          <div class="leg-dot" style="background:#78909c;"></div>
+          <span>Rest Day</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timetable Grid -->
+    <div class="card">
+      <h3>📅 Your Weekly Timetable</h3>
+      <button class="print-btn" onclick="window.print()">🖨️ Print Timetable</button>
+
+      <div class="tt-scroll" style="margin-top:14px;">
+        <table class="tt-table">
+          <thead>
+            <tr>
+              <th class="time-col">Time</th>
+              {% for day in result.days %}
+              <th>{{ day[:3] }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for slot in result.slots %}
+            <tr>
+              <td class="time-cell">{{ slot }}</td>
+              {% for day in result.days %}
+                {% set cell = result.timetable[day].get(slot, {}) %}
+                {% if cell %}
+                  {% if cell.type == 'study' %}
+                  <td class="cell-study" style="background:{{ cell.color }};">{{ cell.subject }}</td>
+                  {% elif cell.type == 'revision' %}
+                  <td class="cell-rev">{{ cell.subject }}</td>
+                  {% elif cell.type == 'rest' %}
+                  <td class="cell-rest">{{ cell.subject }}</td>
+                  {% else %}
+                  <td class="cell-free">{{ cell.subject }}</td>
+                  {% endif %}
+                {% else %}
+                  <td class="cell-free">—</td>
+                {% endif %}
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    {% else %}
+    <!-- Empty state -->
+    <div class="card" style="text-align:center;padding:60px 30px;">
+      <div style="font-size:4rem;margin-bottom:16px;">🧠</div>
+      <h3 style="color:#1a237e;font-size:1.2rem;margin-bottom:10px;">AI Timetable Generator</h3>
+      <p style="color:#888;font-size:.9rem;line-height:1.6;">
+        Fill in the form on the left.<br>
+        The AI will create a smart weekly schedule<br>
+        based on your subjects, exam dates, and goals.
+      </p>
+      <div style="margin-top:24px;display:flex;flex-wrap:wrap;gap:10px;justify-content:center;">
+        {% for feat in ["📅 7-Day Schedule","⏳ Exam Countdown","🎯 Priority-Based","📝 Auto Revision Slots","🌿 Break Day","🖨️ Printable"] %}
+        <span style="background:#e8eaf6;color:#1a237e;padding:6px 14px;border-radius:20px;font-size:.78rem;font-weight:600;">{{ feat }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+</div><!-- /page-wrap -->
+
+<p style="text-align:center;color:rgba(255,255,255,.3);font-size:.73rem;margin-top:28px;">
+  Smart Study Planner &nbsp;•&nbsp; AI-powered scheduling 🚀
+</p>
+
+<script>
+setTimeout(()=>{
+  document.querySelectorAll('.flash').forEach(el=>{
+    el.style.transition='opacity .5s';
+    el.style.opacity='0';
+    setTimeout(()=>el.remove(),500);
+  });
+},4000);
+</script>
+</body>
+</html>
